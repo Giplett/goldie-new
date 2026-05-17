@@ -97,6 +97,30 @@
   box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
 }
 
+.wallet-input {
+  width: 100%;
+  padding: 12px 15px;
+  font-size: 16px;
+  border: none;
+  border-radius: 10px;
+  margin-bottom: 15px;
+  box-sizing: border-box;
+  outline: none;
+  transition: box-shadow 0.3s ease;
+  font-family: 'Courier New', monospace;
+}
+
+.wallet-input:focus {
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
+}
+
+.error-message {
+  color: #ff6b6b;
+  font-size: 14px;
+  margin: -10px 0 10px 0;
+  font-weight: bold;
+}
+
 .submit-button {
   width: 100%;
   padding: 12px;

@@ -17,6 +17,8 @@ const LeaderboardModal = ({ isOpen, onClose, showInput, onSubmitScore, currentSc
   const [leaderboard, setLeaderboard] = useState([]);
   const [loading, setLoading] = useState(false);
   const [username, setUsername] = useState('');
+  const [walletAddress, setWalletAddress] = useState('');
+  const [walletError, setWalletError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState('');
   const [showLeaderboard, setShowLeaderboard] = useState(false);
@@ -38,6 +40,38 @@ const LeaderboardModal = ({ isOpen, onClose, showInput, onSubmitScore, currentSc
       fetchLeaderboard();
     }
   }, [isOpen, showInput]);
+
+  // Validate Ethereum wallet address
+  const validateWalletAddress = (address) => {
+    if (!address) {
+      setWalletError('Ethereum wallet address is required');
+      return false;
+    }
+    if (!address.startsWith('0x')) {
+      setWalletError('Address must start with 0x');
+      return false;
+    }
+    if (address.length !== 42) {
+      setWalletError('Address must be 42 characters long');
+      return false;
+    }
+    if (!/^0x[a-fA-F0-9]{40}$/.test(address)) {
+      setWalletError('Invalid Ethereum address format');
+      return false;
+    }
+    setWalletError('');
+    return true;
+  };
+
+  const handleWalletAddressChange = (e) => {
+    const value = e.target.value;
+    setWalletAddress(value);
+    if (value) {
+      validateWalletAddress(value);
+    } else {
+      setWalletError('');
+    }
+  };
 
   const fetchLeaderboard = async () => {
     setLoading(true);
@@ -80,6 +114,7 @@ const LeaderboardModal = ({ isOpen, onClose, showInput, onSubmitScore, currentSc
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!username.trim()) return;
+    if (!validateWalletAddress(walletAddress)) return;
 
     setSubmitting(true);
     try {
@@ -113,6 +148,7 @@ const LeaderboardModal = ({ isOpen, onClose, showInput, onSubmitScore, currentSc
         .insert([
           {
             username: username.trim(),
+            wallet_address: walletAddress.trim(),
             score: currentScore.score,
             game_duration_ms: currentScore.gameDurationMs,
             pipe_count: currentScore.pipeCount
@@ -150,7 +186,7 @@ const LeaderboardModal = ({ isOpen, onClose, showInput, onSubmitScore, currentSc
           <div className="username-input-section">
             <h2>New High Score!</h2>
             <p>Your score: {currentScore?.score}</p>
-            <p className="subtitle">Enter your username to save your score</p>
+            <p className="subtitle">Enter your username and Ethereum wallet address</p>
             <form onSubmit={handleSubmit}>
               <input
                 type="text"
@@ -159,12 +195,22 @@ const LeaderboardModal = ({ isOpen, onClose, showInput, onSubmitScore, currentSc
                 placeholder="Username (max 20 chars)"
                 maxLength={20}
                 className="username-input"
-                autoFocus
               />
+              <input
+                type="text"
+                value={walletAddress}
+                onChange={handleWalletAddressChange}
+                placeholder="Ethereum Wallet Address (0x...)"
+                maxLength={42}
+                className="wallet-input"
+              />
+              {walletError && (
+                <p className="error-message">{walletError}</p>
+              )}
               <button 
                 type="submit" 
                 className="submit-button"
-                disabled={submitting || !username.trim()}
+                disabled={submitting || !username.trim() || !validateWalletAddress(walletAddress)}
               >
                 {submitting ? 'Submitting...' : 'Submit Score'}
               </button>
