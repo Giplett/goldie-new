@@ -390,11 +390,21 @@ const GoldieGame = () => {
         return false;
       }
 
-      if (data && data.length >= 10) {
-        const minTopScore = data[data.length - 1].score;
-        return score >= minTopScore;
+      console.log('Leaderboard data for qualification check:', data);
+      console.log('Current score:', score);
+
+      // If leaderboard has fewer than 10 entries, always qualify
+      if (!data || data.length < 10) {
+        console.log('Leaderboard has fewer than 10 entries, score qualifies');
+        return true;
       }
-      return true;
+
+      // If leaderboard has 10+ entries, check if score beats the lowest
+      const minTopScore = data[data.length - 1].score;
+      const qualifies = score >= minTopScore;
+      console.log(`Min top score: ${minTopScore}, Current score: ${score}, Qualifies: ${qualifies}`);
+      
+      return qualifies;
     } catch (error) {
       console.error('Failed to check leaderboard:', error);
       return false;
