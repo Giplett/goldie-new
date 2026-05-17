@@ -151,15 +151,18 @@ const LeaderboardModal = ({ isOpen, onClose, showInput, onSubmitScore, currentSc
         .order('score', { ascending: false })
         .limit(10);
 
-      const minTopScore = topScores && topScores.length >= 10 
-        ? topScores[topScores.length - 1].score 
-        : 0;
-
-      if (currentScore.score < minTopScore) {
-        setSubmitMessage('Score did not qualify for top 10');
-        setShowLeaderboard(true);
-        await fetchLeaderboard();
-        return;
+      // If leaderboard has fewer than 10 entries, always qualify
+      if (!topScores || topScores.length < 10) {
+        // Score qualifies, proceed with submission
+      } else {
+        // If leaderboard has 10+ entries, check if score beats the lowest
+        const minTopScore = topScores[topScores.length - 1].score;
+        if (currentScore.score < minTopScore) {
+          setSubmitMessage('Score did not qualify for top 10');
+          setShowLeaderboard(true);
+          await fetchLeaderboard();
+          return;
+        }
       }
 
       // Insert score
