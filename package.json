@@ -1,9 +1,0 @@
-{
-  "name": "goldie-new",
-  "version": "1.0.0",
-  "private": true,
-  "scripts": {
-    "postinstall": "cd goldie-master && npm install",
-    "build": "cd goldie-master && npm run build"
-  }
-}

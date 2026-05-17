@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { createClient } from '@supabase/supabase-js';
 import './LeaderboardModal.css';
+
+// Initialize Supabase client
+const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
+const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 const LeaderboardModal = ({ isOpen, onClose, showInput, onSubmitScore, currentScore }) => {
   const [leaderboard, setLeaderboard] = useState([]);
@@ -18,12 +24,27 @@ const LeaderboardModal = ({ isOpen, onClose, showInput, onSubmitScore, currentSc
   const fetchLeaderboard = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/get-leaderboard');
-      const data = await response.json();
-      if (data.success) {
-        setLeaderboard(data.leaderboard);
-        setShowLeaderboard(true);
+      const { data, error } = await supabase
+        .from('scores')
+        .select('username, score, created_at')
+        .order('score', { ascending: false, nullsFirst: false })
+        .order('created_at', { ascending: true })
+        .limit(10);
+
+      if (error) {
+        console.error('Supabase error:', error);
+        return;
       }
+
+      const leaderboard = data.map((entry, index) => ({
+        rank: index + 1,
+        username: entry.username,
+        score: entry.score,
+        date: entry.created_at
+      }));
+
+      setLeaderboard(leaderboard);
+      setShowLeaderboard(true);
     } catch (error) {
       console.error('Failed to fetch leaderboard:', error);
     } finally {
@@ -37,35 +58,48 @@ const LeaderboardModal = ({ isOpen, onClose, showInput, onSubmitScore, currentSc
 
     setSubmitting(true);
     try {
-      const response = await fetch('/api/submit-score', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username: username.trim(),
-          score: currentScore.score,
-          gameDurationMs: currentScore.gameDurationMs,
-          pipeCount: currentScore.pipeCount
-        }),
-      });
+      // Check if score qualifies for top 10
+      const { data: topScores } = await supabase
+        .from('scores')
+        .select('score')
+        .order('score', { ascending: false })
+        .limit(10);
 
-      const data = await response.json();
-      
-      if (data.success) {
-        setSubmitMessage('Score submitted successfully!');
-        setLeaderboard(data.leaderboard);
+      const minTopScore = topScores && topScores.length >= 10 
+        ? topScores[topScores.length - 1].score 
+        : 0;
+
+      if (currentScore.score < minTopScore) {
+        setSubmitMessage('Score did not qualify for top 10');
         setShowLeaderboard(true);
-        setTimeout(() => {
-          onClose();
-        }, 2000);
-      } else {
-        setSubmitMessage(data.message || 'Failed to submit score');
-        if (data.currentTop10 !== undefined) {
-          setShowLeaderboard(true);
-          await fetchLeaderboard();
-        }
+        await fetchLeaderboard();
+        return;
       }
+
+      // Insert score
+      const { data, error } = await supabase
+        .from('scores')
+        .insert([
+          {
+            username: username.trim(),
+            score: currentScore.score,
+            game_duration_ms: currentScore.gameDurationMs,
+            pipe_count: currentScore.pipeCount
+          }
+        ])
+        .select();
+
+      if (error) {
+        console.error('Supabase error:', error);
+        setSubmitMessage('Failed to submit score');
+        return;
+      }
+
+      setSubmitMessage('Score submitted successfully!');
+      await fetchLeaderboard();
+      setTimeout(() => {
+        onClose();
+      }, 2000);
     } catch (error) {
       console.error('Failed to submit score:', error);
       setSubmitMessage('Error submitting score');
