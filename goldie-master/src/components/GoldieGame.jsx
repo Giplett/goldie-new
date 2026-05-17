@@ -1,10 +1,14 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import './GoldieGame.css';
+import LeaderboardModal from './LeaderboardModal';
 
 const GoldieGame = () => {
   const canvasRef = useRef(null);
   const [scale, setScale] = useState(1);
   const [mounted, setMounted] = useState(false);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [showUsernameInput, setShowUsernameInput] = useState(false);
+  const [currentScore, setCurrentScore] = useState(null);
 
   // Ensure component only renders on client side
   useEffect(() => {
@@ -26,7 +30,10 @@ const GoldieGame = () => {
     getReady: null,
     gameOver: null,
     animationId: null,
-    initialized: false
+    initialized: false,
+    gameStartTime: null,
+    gameDuration: 0,
+    pipeCount: 0
   });
 
   // Responsive scaling
@@ -262,6 +269,11 @@ const GoldieGame = () => {
       }
     };
 
+    // Track game start time
+    game.gameStartTime = Date.now();
+    game.gameDuration = 0;
+    game.pipeCount = 0;
+
   }, [mounted]);
 
   // Game loop
@@ -327,6 +339,9 @@ const GoldieGame = () => {
       case game.state.getReady:
         game.state.current = game.state.game;
         game.sounds.SWOOSHING.play();
+        game.gameStartTime = Date.now();
+        game.gameDuration = 0;
+        game.pipeCount = 0;
         break;
       case game.state.game:
         if (game.fish.y - game.fish.radius <= 0) return;
@@ -340,12 +355,82 @@ const GoldieGame = () => {
           game.fish.speedReset();
           game.score.reset();
           game.state.current = game.state.getReady;
+          game.gameStartTime = Date.now();
+          game.gameDuration = 0;
+          game.pipeCount = 0;
         }
         break;
       default:
         break;
     }
   }, [scale]);
+
+  // Check if score qualifies for leaderboard
+  const checkLeaderboardQualification = useCallback(async (score) => {
+    try {
+      const response = await fetch('/api/get-leaderboard');
+      const data = await response.json();
+      if (data.success && data.leaderboard.length >= 10) {
+        const minTopScore = data.leaderboard[data.leaderboard.length - 1].score;
+        return score >= minTopScore;
+      }
+      return true;
+    } catch (error) {
+      console.error('Failed to check leaderboard:', error);
+      return false;
+    }
+  }, []);
+
+  // Handle game over
+  useEffect(() => {
+    const game = gameRef.current;
+    
+    const handleGameOver = async () => {
+      if (game.state.current === game.state.over && game.score.value > 0) {
+        const qualifies = await checkLeaderboardQualification(game.score.value);
+        if (qualifies) {
+          setCurrentScore({
+            score: game.score.value,
+            gameDurationMs: game.gameDuration,
+            pipeCount: game.pipeCount
+          });
+          setShowUsernameInput(true);
+        }
+      }
+    };
+
+    handleGameOver();
+  }, [checkLeaderboardQualification]);
+
+  // Update game duration and pipe count
+  useEffect(() => {
+    const game = gameRef.current;
+    
+    const interval = setInterval(() => {
+      if (game.state.current === game.state.game && game.gameStartTime) {
+        game.gameDuration = Date.now() - game.gameStartTime;
+      }
+    }, 100);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Track pipe count when score increases
+  useEffect(() => {
+    const game = gameRef.current;
+    
+    if (game.score && !game.score._patched) {
+      game.score._patched = true;
+      const originalUpdate = game.pipes.update;
+      game.pipes.update = function() {
+        const oldScore = game.score.value;
+        originalUpdate.call(this);
+        if (game.score.value > oldScore) {
+          game.pipeCount = game.score.value;
+        }
+      };
+    }
+  }, []);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -363,6 +448,12 @@ const GoldieGame = () => {
 
   return (
     <div className="goldie-game-container">
+      <button 
+        className="leaderboard-button"
+        onClick={() => setShowLeaderboard(true)}
+      >
+        🏆 Leaderboard
+      </button>
       <canvas
         ref={canvasRef}
         width="320"
@@ -377,6 +468,17 @@ const GoldieGame = () => {
           maxWidth: '100%',
           maxHeight: '100vh'
         }}
+      />
+      <LeaderboardModal
+        isOpen={showLeaderboard || showUsernameInput}
+        onClose={() => {
+          setShowLeaderboard(false);
+          setShowUsernameInput(false);
+          setCurrentScore(null);
+        }}
+        showInput={showUsernameInput}
+        onSubmitScore={setCurrentScore}
+        currentScore={currentScore}
       />
     </div>
   );

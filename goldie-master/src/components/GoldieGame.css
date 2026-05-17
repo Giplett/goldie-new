@@ -2,11 +2,39 @@
   width: 100%;
   min-height: 100vh;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   background-color: #009dff;
   padding: 20px;
   box-sizing: border-box;
+  position: relative;
+}
+
+.leaderboard-button {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 25px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  z-index: 100;
+}
+
+.leaderboard-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.leaderboard-button:active {
+  transform: translateY(0);
 }
 
 .goldie-game-container canvas {
@@ -17,5 +45,12 @@
 @media (max-width: 480px) {
   .goldie-game-container {
     padding: 10px;
+  }
+
+  .leaderboard-button {
+    top: 10px;
+    right: 10px;
+    padding: 10px 16px;
+    font-size: 14px;
   }
 }

@@ -1,0 +1,285 @@
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+}
+
+.modal-content {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 20px;
+  padding: 30px;
+  max-width: 400px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  position: relative;
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-50px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-close {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  font-size: 28px;
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.modal-close:hover {
+  background: rgba(255, 255, 255, 0.4);
+  transform: rotate(90deg);
+}
+
+.username-input-section {
+  text-align: center;
+  color: white;
+}
+
+.username-input-section h2 {
+  margin: 0 0 10px 0;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.username-input-section p {
+  margin: 10px 0;
+  font-size: 18px;
+}
+
+.username-input-section .subtitle {
+  font-size: 14px;
+  opacity: 0.9;
+  margin-bottom: 20px;
+}
+
+.username-input {
+  width: 100%;
+  padding: 12px 15px;
+  font-size: 16px;
+  border: none;
+  border-radius: 10px;
+  margin-bottom: 15px;
+  box-sizing: border-box;
+  outline: none;
+  transition: box-shadow 0.3s ease;
+}
+
+.username-input:focus {
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
+}
+
+.submit-button {
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  font-weight: bold;
+  background: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-bottom: 10px;
+}
+
+.submit-button:hover:not(:disabled) {
+  background: #45a049;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.submit-button:disabled {
+  background: #cccccc;
+  cursor: not-allowed;
+}
+
+.cancel-button {
+  background: transparent;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  color: white;
+  padding: 8px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.cancel-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: white;
+}
+
+.message {
+  margin: 10px 0;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.message.success {
+  color: #4CAF50;
+}
+
+.message.error {
+  color: #ff6b6b;
+}
+
+.leaderboard-section {
+  text-align: center;
+  color: white;
+}
+
+.leaderboard-section h2 {
+  margin: 0 0 20px 0;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.loading,
+.no-scores {
+  font-size: 16px;
+  opacity: 0.9;
+  padding: 20px;
+}
+
+.leaderboard-list {
+  margin: 20px 0;
+}
+
+.leaderboard-entry {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 15px;
+  margin-bottom: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  animation: entrySlideIn 0.3s ease-out forwards;
+  opacity: 0;
+  transform: translateX(-20px);
+}
+
+@keyframes entrySlideIn {
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.leaderboard-entry.first {
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+  color: #333;
+  font-weight: bold;
+}
+
+.leaderboard-entry.second {
+  background: linear-gradient(135deg, #C0C0C0 0%, #A8A8A8 100%);
+  color: #333;
+  font-weight: bold;
+}
+
+.leaderboard-entry.third {
+  background: linear-gradient(135deg, #CD7F32 0%, #B87333 100%);
+  color: #333;
+  font-weight: bold;
+}
+
+.rank {
+  font-size: 18px;
+  font-weight: bold;
+  width: 30px;
+  text-align: center;
+}
+
+.username {
+  flex: 1;
+  text-align: left;
+  padding-left: 15px;
+  font-size: 16px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.score {
+  font-size: 18px;
+  font-weight: bold;
+  padding-right: 10px;
+}
+
+.close-button {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  padding: 12px 30px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  margin-top: 10px;
+}
+
+.close-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+/* Mobile responsive */
+@media (max-width: 480px) {
+  .modal-content {
+    padding: 20px;
+    max-width: 95%;
+  }
+
+  .username-input-section h2,
+  .leaderboard-section h2 {
+    font-size: 24px;
+  }
+
+  .username-input-section p {
+    font-size: 16px;
+  }
+
+  .leaderboard-entry {
+    padding: 10px 12px;
+  }
+
+  .rank,
+  .score {
+    font-size: 16px;
+  }
+
+  .username {
+    font-size: 14px;
+  }
+}
