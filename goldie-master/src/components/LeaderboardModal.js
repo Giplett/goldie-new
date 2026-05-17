@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
+import { ethers } from 'ethers';
 import './LeaderboardModal.css';
 
 // Initialize Supabase client with safety validation
@@ -18,6 +19,8 @@ const LeaderboardModal = ({ isOpen, onClose, showInput, onSubmitScore, currentSc
   const [loading, setLoading] = useState(false);
   const [username, setUsername] = useState('');
   const [walletAddress, setWalletAddress] = useState('');
+  const [ensName, setEnsName] = useState('');
+  const [isConnecting, setIsConnecting] = useState(false);
   const [walletError, setWalletError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState('');
@@ -41,36 +44,50 @@ const LeaderboardModal = ({ isOpen, onClose, showInput, onSubmitScore, currentSc
     }
   }, [isOpen, showInput]);
 
-  // Validate Ethereum wallet address
-  const validateWalletAddress = (address) => {
-    if (!address) {
-      setWalletError('Ethereum wallet address is required');
-      return false;
+  // Connect wallet using MetaMask
+  const connectWallet = async () => {
+    if (!window.ethereum) {
+      setWalletError('MetaMask not installed. Please install MetaMask to submit your score.');
+      return;
     }
-    if (!address.startsWith('0x')) {
-      setWalletError('Address must start with 0x');
-      return false;
-    }
-    if (address.length !== 42) {
-      setWalletError('Address must be 42 characters long');
-      return false;
-    }
-    if (!/^0x[a-fA-F0-9]{40}$/.test(address)) {
-      setWalletError('Invalid Ethereum address format');
-      return false;
-    }
+
+    setIsConnecting(true);
     setWalletError('');
-    return true;
+
+    try {
+      // Request account access
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      
+      if (accounts.length === 0) {
+        setWalletError('No accounts found. Please connect your wallet.');
+        return;
+      }
+
+      const address = accounts[0];
+      setWalletAddress(address);
+
+      // Resolve ENS name if available
+      try {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const ens = await provider.lookupAddress(address);
+        setEnsName(ens || '');
+      } catch (ensError) {
+        console.log('ENS resolution failed:', ensError);
+        setEnsName('');
+      }
+
+    } catch (error) {
+      console.error('Wallet connection error:', error);
+      setWalletError('Failed to connect wallet. Please try again.');
+    } finally {
+      setIsConnecting(false);
+    }
   };
 
-  const handleWalletAddressChange = (e) => {
-    const value = e.target.value;
-    setWalletAddress(value);
-    if (value) {
-      validateWalletAddress(value);
-    } else {
-      setWalletError('');
-    }
+  // Shorten wallet address for display
+  const shortenAddress = (address) => {
+    if (!address) return '';
+    return `${address.slice(0, 6)}...${address.slice(-4)}`;
   };
 
   const fetchLeaderboard = async () => {
@@ -114,7 +131,10 @@ const LeaderboardModal = ({ isOpen, onClose, showInput, onSubmitScore, currentSc
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!username.trim()) return;
-    if (!validateWalletAddress(walletAddress)) return;
+    if (!walletAddress) {
+      setWalletError('Please connect your wallet to submit your score');
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -148,7 +168,8 @@ const LeaderboardModal = ({ isOpen, onClose, showInput, onSubmitScore, currentSc
         .insert([
           {
             username: username.trim(),
-            wallet_address: walletAddress.trim(),
+            wallet_address: walletAddress,
+            ens_name: ensName || null,
             score: currentScore.score,
             game_duration_ms: currentScore.gameDurationMs,
             pipe_count: currentScore.pipeCount
@@ -186,7 +207,7 @@ const LeaderboardModal = ({ isOpen, onClose, showInput, onSubmitScore, currentSc
           <div className="username-input-section">
             <h2>New High Score!</h2>
             <p>Your score: {currentScore?.score}</p>
-            <p className="subtitle">Enter your username and Ethereum wallet address</p>
+            <p className="subtitle">Enter your username and connect your wallet</p>
             <form onSubmit={handleSubmit}>
               <input
                 type="text"
@@ -196,23 +217,37 @@ const LeaderboardModal = ({ isOpen, onClose, showInput, onSubmitScore, currentSc
                 maxLength={20}
                 className="username-input"
               />
-              <input
-                type="text"
-                value={walletAddress}
-                onChange={handleWalletAddressChange}
-                placeholder="Ethereum Wallet Address (0x...)"
-                maxLength={42}
-                className="wallet-input"
-              />
+              
+              {!walletAddress ? (
+                <button
+                  type="button"
+                  onClick={connectWallet}
+                  className="connect-wallet-button"
+                  disabled={isConnecting}
+                >
+                  {isConnecting ? 'Connecting...' : 'Connect Wallet'}
+                </button>
+              ) : (
+                <div className="wallet-info">
+                  <p className="wallet-address">
+                    {ensName ? ensName : shortenAddress(walletAddress)}
+                  </p>
+                  {!ensName && (
+                    <p className="full-wallet-address">{walletAddress}</p>
+                  )}
+                </div>
+              )}
+              
               {walletError && (
                 <p className="error-message">{walletError}</p>
               )}
+              
               <button 
                 type="submit" 
                 className="submit-button"
-                disabled={submitting || !username.trim() || !validateWalletAddress(walletAddress)}
+                disabled={submitting || !username.trim() || !walletAddress}
               >
-                {submitting ? 'Submitting...' : 'Submit Score'}
+                {submitting ? 'Submitting...' : 'Confirm & Submit Score'}
               </button>
             </form>
             {submitMessage && (
