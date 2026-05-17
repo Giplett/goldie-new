@@ -163,23 +163,24 @@ const LeaderboardModal = ({ isOpen, onClose, showInput, onSubmitScore, currentSc
       }
 
       // Insert score
-      const { data, error } = await supabase
+      const insertPayload = {
+        username: username.trim(),
+        wallet_address: walletAddress,
+        ens_name: ensName || null,
+        score: currentScore.score,
+        game_duration_ms: currentScore.gameDurationMs,
+        pipe_count: currentScore.pipeCount
+      };
+
+      console.log('Inserting score with payload:', insertPayload);
+
+      const { error } = await supabase
         .from('scores')
-        .insert([
-          {
-            username: username.trim(),
-            wallet_address: walletAddress,
-            ens_name: ensName || null,
-            score: currentScore.score,
-            game_duration_ms: currentScore.gameDurationMs,
-            pipe_count: currentScore.pipeCount
-          }
-        ])
-        .select();
+        .insert([insertPayload]);
 
       if (error) {
-        console.error('Supabase error:', error);
-        setSubmitMessage('Failed to submit score');
+        console.error('Supabase error details:', error);
+        setSubmitMessage(`Failed to submit score: ${error.message}`);
         return;
       }
 
