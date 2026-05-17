@@ -1,11 +1,12 @@
 # Supabase Migration Instructions
 
-## Add ens_name Column to Scores Table
+## Add wallet_address and ens_name Columns to Scores Table
 
-To enable ENS support for leaderboard submissions, run the following SQL in your Supabase SQL Editor:
+To enable Web3 wallet connection and ENS support for leaderboard submissions, run the following SQL in your Supabase SQL Editor:
 
 ```sql
--- Add ens_name column to scores table
+-- Add wallet_address and ens_name columns to scores table
+ALTER TABLE scores ADD COLUMN wallet_address TEXT;
 ALTER TABLE scores ADD COLUMN ens_name TEXT;
 
 -- Create index on wallet_address for faster lookups
@@ -26,7 +27,7 @@ CREATE INDEX IF NOT EXISTS idx_scores_ens_name ON scores(ens_name);
 
 ### Verification
 
-After running the migration, verify the column was added:
+After running the migration, verify the columns were added:
 
 ```sql
 SELECT column_name, data_type 
@@ -34,4 +35,4 @@ FROM information_schema.columns
 WHERE table_name = 'scores';
 ```
 
-You should see `ens_name` in the list of columns.
+You should see both `wallet_address` and `ens_name` in the list of columns.
