@@ -1,6 +1,12 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
+import { createClient } from '@supabase/supabase-js';
 import './GoldieGame.css';
 import LeaderboardModal from './LeaderboardModal';
+
+// Initialize Supabase client
+const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
+const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
+const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
 
 const GoldieGame = () => {
   const canvasRef = useRef(null);
@@ -367,11 +373,25 @@ const GoldieGame = () => {
 
   // Check if score qualifies for leaderboard
   const checkLeaderboardQualification = useCallback(async (score) => {
+    if (!supabase) {
+      console.error('Supabase client not initialized');
+      return false;
+    }
+
     try {
-      const response = await fetch('/api/get-leaderboard');
-      const data = await response.json();
-      if (data.success && data.leaderboard.length >= 10) {
-        const minTopScore = data.leaderboard[data.leaderboard.length - 1].score;
+      const { data, error } = await supabase
+        .from('scores')
+        .select('score')
+        .order('score', { ascending: false })
+        .limit(10);
+
+      if (error) {
+        console.error('Supabase error:', error);
+        return false;
+      }
+
+      if (data && data.length >= 10) {
+        const minTopScore = data[data.length - 1].score;
         return score >= minTopScore;
       }
       return true;
