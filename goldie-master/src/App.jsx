@@ -2,6 +2,7 @@ import AOS from 'aos';
 import 'aos/dist/aos.css'; // You can also use <link> for styles
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 import Home from './pages/Home'
+import Game from './pages/Game'
 
 AOS.init({
 	// Global settings:
@@ -33,6 +34,7 @@ function App() {
 			<Router>
 				<Routes>
 					<Route path='/' element={<Home />}></Route>
+					<Route path='/game' element={<Game />}></Route>
 					{/* <Route path='/mint' element={<Mint />}></Route> */}
 				</Routes>
 			</Router>

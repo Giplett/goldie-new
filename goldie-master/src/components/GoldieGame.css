@@ -1,0 +1,21 @@
+.goldie-game-container {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #009dff;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.goldie-game-container canvas {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (max-width: 480px) {
+  .goldie-game-container {
+    padding: 10px;
+  }
+}

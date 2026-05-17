@@ -25,6 +25,7 @@ function Header() {
 			<BrowserView>
 				<ul>
 					<li><a href="/#sectionTwo">Your Goldie</a></li>
+					<li><a href="/game">Play Game</a></li>
 				</ul>
 			</BrowserView>
 		</div>
@@ -45,6 +46,7 @@ function Header() {
 				<div className='exit'><img onClick={toggleDrawer} src={exit} alt="exit button" /></div>
 				<ul>
 					<li><a onClick={toggleDrawer} href="/#sectionTwo">Your Goldie</a></li>
+					<li><a onClick={toggleDrawer} href="/game">Play Game</a></li>
 				</ul>
 				<div className="social">
 					<div className="bubble"><a target='_blank' href="https://twitter.com/nftgoldies"><img src={tw} alt="twitter icon" /></a></div>
