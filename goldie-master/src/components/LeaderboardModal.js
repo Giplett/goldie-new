@@ -21,6 +21,18 @@ const LeaderboardModal = ({ isOpen, onClose, showInput, onSubmitScore, currentSc
   const [submitMessage, setSubmitMessage] = useState('');
   const [showLeaderboard, setShowLeaderboard] = useState(false);
 
+  // Handle ESC key to close modal
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isOpen, onClose]);
+
   useEffect(() => {
     if (isOpen && !showInput) {
       fetchLeaderboard();
@@ -130,8 +142,8 @@ const LeaderboardModal = ({ isOpen, onClose, showInput, onSubmitScore, currentSc
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+    <div className="modal-overlay">
+      <div className="modal-content">
         <button className="modal-close" onClick={onClose}>×</button>
         
         {showInput && !showLeaderboard ? (
