@@ -381,27 +381,6 @@ const GoldieGame = () => {
     }
   }, []);
 
-  // Handle game over
-  useEffect(() => {
-    const game = gameRef.current;
-    
-    const handleGameOver = async () => {
-      if (game.state.current === game.state.over && game.score.value > 0) {
-        const qualifies = await checkLeaderboardQualification(game.score.value);
-        if (qualifies) {
-          setCurrentScore({
-            score: game.score.value,
-            gameDurationMs: game.gameDuration,
-            pipeCount: game.pipeCount
-          });
-          setShowUsernameInput(true);
-        }
-      }
-    };
-
-    handleGameOver();
-  }, [checkLeaderboardQualification]);
-
   // Update game duration and pipe count
   useEffect(() => {
     const game = gameRef.current;
@@ -431,6 +410,35 @@ const GoldieGame = () => {
       };
     }
   }, []);
+
+  // Sync game state to React state
+  useEffect(() => {
+    const game = gameRef.current;
+    const previousStateRef = { current: game.state.current };
+    
+    const interval = setInterval(() => {
+      if (game.state.current !== previousStateRef.current) {
+        const previous = previousStateRef.current;
+        previousStateRef.current = game.state.current;
+        
+        // Trigger leaderboard check when game ends
+        if (previous === game.state.game && game.state.current === game.state.over && game.score.value > 0) {
+          checkLeaderboardQualification(game.score.value).then(qualifies => {
+            if (qualifies) {
+              setCurrentScore({
+                score: game.score.value,
+                gameDurationMs: game.gameDuration,
+                pipeCount: game.pipeCount
+              });
+              setShowUsernameInput(true);
+            }
+          });
+        }
+      }
+    }, 100);
+
+    return () => clearInterval(interval);
+  }, [checkLeaderboardQualification]);
 
   // Cleanup on unmount
   useEffect(() => {
