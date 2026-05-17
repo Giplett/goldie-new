@@ -1,0 +1,12 @@
+{
+  "buildCommand": "cd goldie-master && npm run build",
+  "outputDirectory": "goldie-master/build",
+  "installCommand": "cd goldie-master && npm install",
+  "framework": "create-react-app",
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "/api/:path*"
+    }
+  ]
+}
