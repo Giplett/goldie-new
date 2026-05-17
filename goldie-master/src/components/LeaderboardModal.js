@@ -2,10 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import './LeaderboardModal.css';
 
-// Initialize Supabase client
+// Initialize Supabase client with safety validation
 const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
 const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
-const supabase = createClient(supabaseUrl, supabaseKey);
+
+let supabase;
+if (!supabaseUrl || !supabaseKey) {
+  console.error('Missing Supabase environment variables. Please set REACT_APP_SUPABASE_URL and REACT_APP_SUPABASE_ANON_KEY');
+} else {
+  supabase = createClient(supabaseUrl, supabaseKey);
+}
 
 const LeaderboardModal = ({ isOpen, onClose, showInput, onSubmitScore, currentScore }) => {
   const [leaderboard, setLeaderboard] = useState([]);
@@ -24,6 +30,13 @@ const LeaderboardModal = ({ isOpen, onClose, showInput, onSubmitScore, currentSc
   const fetchLeaderboard = async () => {
     setLoading(true);
     try {
+      if (!supabase) {
+        console.error('Supabase client not initialized');
+        setLeaderboard([]);
+        setShowLeaderboard(true);
+        return;
+      }
+
       const { data, error } = await supabase
         .from('scores')
         .select('username, score, created_at')
@@ -58,6 +71,12 @@ const LeaderboardModal = ({ isOpen, onClose, showInput, onSubmitScore, currentSc
 
     setSubmitting(true);
     try {
+      if (!supabase) {
+        console.error('Supabase client not initialized');
+        setSubmitMessage('Leaderboard not available');
+        return;
+      }
+
       // Check if score qualifies for top 10
       const { data: topScores } = await supabase
         .from('scores')
